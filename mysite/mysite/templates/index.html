@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scribbl.io</title>
+</head>
+<body>
+    <button id="play-game">Join game</button><br>
+    <button id="create-game">Create private game</button>
+
+    <script>
+        document.querySelector('#play-game').onclick = function(e) {
+            window.location.pathname = '/chat/';
+        };
+
+        document.querySelector('#create-game').onclick = function(e) {
+            window.location.pathname = '/game/';
+        };
+    </script>
+
+</body>
+</html>

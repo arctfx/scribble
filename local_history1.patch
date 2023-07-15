@@ -1,0 +1,155 @@
+Index: mysite/mysite/urls.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/urls.py b/mysite/mysite/urls.py
+--- a/mysite/mysite/urls.py	
++++ b/mysite/mysite/urls.py	
+@@ -1,7 +1,10 @@
+ from django.contrib import admin
+ from django.urls import include, path
+ 
++from . import views
++
+ urlpatterns = [
++    path("", views.index, name="index"),
+     path("chat/", include("chat.urls")),
+     path("admin/", admin.site.urls),
+-]
+\ No newline at end of file
++]
+Index: mysite/mysite/views.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/views.py b/mysite/mysite/views.py
+new file mode 100644
+--- /dev/null	
++++ b/mysite/mysite/views.py	
+@@ -0,0 +1,11 @@
++from django.shortcuts import render
++from django.utils.crypto import get_random_string
++
++
++def index(request):
++    return render(request, "index.html")
++
++
++def create_room():
++    unique_id = get_random_string(length=8)
++    return render(unique_id, "")
+Index: mysite/mysite/templates/static/style.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/templates/static/style.css b/mysite/mysite/templates/static/style.css
+new file mode 100644
+--- /dev/null	
++++ b/mysite/mysite/templates/static/style.css	
+@@ -0,0 +1,3 @@
++* {
++    color:blanchedalmond;	 
++}
+\ No newline at end of file
+Index: mysite/mysite/templates/game.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/templates/game.html b/mysite/mysite/templates/game.html
+new file mode 100644
+--- /dev/null	
++++ b/mysite/mysite/templates/game.html	
+@@ -0,0 +1,11 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <link rel="stylesheet" href="./static/style.css">
++    <title>Scribble</title>
++</head>
++<body style="background:#123456;">
++    <p>Playing scribble!</p>
++</body>
++</html>
+\ No newline at end of file
+Index: mysite/mysite/templates/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/templates/index.html b/mysite/mysite/templates/index.html
+new file mode 100644
+--- /dev/null	
++++ b/mysite/mysite/templates/index.html	
+@@ -0,0 +1,22 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <title>Scribbl.io</title>
++</head>
++<body>
++    <button id="play-game">Join game</button><br>
++    <button id="create-game">Create private game</button>
++
++    <script>
++        document.querySelector('#play-game').onclick = function(e) {
++            window.location.pathname = '/chat/';
++        };
++
++        document.querySelector('#create-game').onclick = function(e) {
++            window.location.pathname = '/game/';
++        };
++    </script>
++
++</body>
++</html>
+\ No newline at end of file
+Index: mysite/mysite/settings.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/mysite/mysite/settings.py b/mysite/mysite/settings.py
+--- a/mysite/mysite/settings.py	
++++ b/mysite/mysite/settings.py	
+@@ -56,7 +56,7 @@
+ TEMPLATES = [
+     {
+         "BACKEND": "django.template.backends.django.DjangoTemplates",
+-        "DIRS": [],
++        "DIRS": [BASE_DIR / "mysite/templates"],
+         "APP_DIRS": True,
+         "OPTIONS": {
+             "context_processors": [
+Index: local_history.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/local_history.patch b/local_history.patch
+new file mode 100644
+--- /dev/null	
++++ b/local_history.patch	
+@@ -0,0 +1,17 @@
++Index: mysite/mysite/settings.py
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/mysite/mysite/settings.py b/mysite/mysite/settings.py
++--- a/mysite/mysite/settings.py	
+++++ b/mysite/mysite/settings.py	(date 1689414744965)
++@@ -56,7 +56,7 @@
++ TEMPLATES = [
++     {
++         "BACKEND": "django.template.backends.django.DjangoTemplates",
++-        "DIRS": [BASE_DIR],
+++        "DIRS": [BASE_DIR / "mysite/templates"],
++         "APP_DIRS": True,
++         "OPTIONS": {
++             "context_processors": [
