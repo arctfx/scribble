@@ -4,14 +4,30 @@
 <head>
     <meta charset="utf-8"/>
     <title>Chat Room</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
+    <label id="room-id">Room ID: </label><br>
+    <label id="user-id">Nickname: </label><br>
+    <textarea id="chat-log" cols="60" rows="20"></textarea><br>
+    <input id="chat-message-input" type="text" size="60"><br>
     <input id="chat-message-submit" type="button" value="Send">
     {{ room_name|json_script:"room-name" }}
+    {{ user_name|json_script:"user-name" }}
+    {% if latest_messages %}
+        {% for message in latest_messages %}
+            <script mssg="{{ message.text }}", sndr="{{ message.sender}}">
+                message = document.currentScript.getAttribute('mssg');
+                sender = document.currentScript.getAttribute('sndr');
+                document.querySelector('#chat-log').value += (sender + ": " + message + '\n');
+            </script>
+        {% endfor %}
+    {% endif %}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        document.querySelector('#room-id').innerHTML += roomName;
+        const userName = JSON.parse(document.getElementById('user-name').textContent);
+        document.querySelector('#user-id').innerHTML += userName;
 
         const chatSocket = new WebSocket(
             'ws://'
@@ -22,8 +38,27 @@
         );
 
         chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            try {
+                const data = JSON.parse(e.data);
+                console.log(e.data); //debug
+
+                e.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: "send_message/",
+                    data: { sender: data.sender,
+                            text: data.message
+                          },
+                    success: function (response) {
+                        console.log("Successfully received message!");
+                    }
+                })
+
+                document.querySelector('#chat-log').value += (data.sender + ": " + data.message + '\n');
+                console.log(data.sender);
+            } catch(err) {
+                console.log("Invalid data received from WebSocket: {err.message}");
+            }
         };
 
         chatSocket.onclose = function(e) {
@@ -40,9 +75,11 @@
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
+            var msg = {
+			    "message": message,
+			    "sender": userName
+			};
+            chatSocket.send(JSON.stringify(msg));
             messageInputDom.value = '';
         };
     </script>

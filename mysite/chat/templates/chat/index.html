@@ -7,10 +7,35 @@
 </head>
 <body>
     What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="room-name-submit" type="button" value="Enter">
+    <input id="room-name-input" type="text" size="30"><br>
+    <input id="room-name-submit" type="button" value="Enter"><br>
+    What would your nickname be?<br>
+    <input id="nickname-input" type="text" size="30" placeholder="AnonymousPlayer" pattern="\w{1,30}">
+    <bold style="color:#cccccc">Nicknames should be up to 30 characters long and should not contain spaces</bold><br>
+    <input id="nickname-submit" type="button" value="Enter">
 
+    {% if bad_room_id %}
+        <p>There is no room with such id!</p>
+    {% endif %}
     <script>
+        var userName = "AnonymousPlayer";
+
+        document.querySelector('#nickname-input').focus();
+        document.querySelector('#nickname-input').onkeyup = function(e) {
+            if(e.keyCode === 13) { // enter, return
+                document.querySelector('#nickname-submit').click();
+            }
+        };
+        document.querySelector('#nickname-input').onchange = function(e) {
+            //TO_DO: validation
+            console.log(document.querySelector('#nickname-input').value);
+        }
+
+        document.querySelector('#nickname-submit').onclick = function(e) {
+            var nickname = document.querySelector('#nickname-input').value;
+            //TO_DO
+        };
+
         document.querySelector('#room-name-input').focus();
         document.querySelector('#room-name-input').onkeyup = function(e) {
             if (e.keyCode === 13) {  // enter, return
@@ -20,7 +45,7 @@
 
         document.querySelector('#room-name-submit').onclick = function(e) {
             var roomName = document.querySelector('#room-name-input').value;
-            window.location.pathname = '/chat/' + roomName + '/';
+            window.location.pathname = '/chat/' + roomName + '/' + userName + '/';
         };
     </script>
 </body>
