@@ -5,11 +5,35 @@
     <meta charset="utf-8"/>
     <title>Chat Room</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
 </head>
 <body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
+    <div class="nav">
+        <div class="clr" data-clr="#000000"></div>
+        <div class="clr" data-clr="#7f7f7f"></div>
+        <div class="clr" data-clr="#a73d00"></div>
+        <div class="clr" data-clr="#62267f"></div>
+        <div class="clr" data-clr="#0123e4"></div>
+        <div class="clr" data-clr="#26a2ff"></div>
+        <div class="clr" data-clr="#006321"></div>
+        <div class="clr" data-clr="#66ff00"></div>
+        <div class="clr" data-clr="#ffe90e"></div>
+        <div class="clr" data-clr="#ff6d09"></div>
+        <div class="clr" data-clr="#e30e12"></div>
+        <div class="clr" data-clr="#ff148d"></div>
+        <div class="clr" data-clr="#ffffff"></div>
+        <button id="clear-button" class="clear">clear</button>
+        <button id="save-button" class="save">save</button>
+    </div>
+
     <label id="room-id">Room ID: </label><br>
     <label id="user-id">Nickname: </label><br>
-    <textarea id="chat-log" cols="60" rows="20" style="background-color: #111111; color: #cccccc;"></textarea><br>
+    <textarea id="chat-log" cols="60" rows="20" style="background-color: #111111; color: #cccccc;"></textarea>
+    <div class="canvas-panel" id="canvas-panel">
+        <canvas id="canvas"></canvas>
+    </div>
+    <br>
     <input id="chat-message-input" type="text" size="60" style="background-color: #111111; color: #cccccc;"><br>
     <input id="chat-message-submit" type="button" value="Send"><br>
     <p>Players:</p>
@@ -28,154 +52,7 @@
         {% endfor %}
     {% endif %}
 
-    <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        document.querySelector('#room-id').innerHTML += roomName;
-        const userName = JSON.parse(document.getElementById('user-name').textContent);
-        document.querySelector('#user-id').innerHTML += userName;
-
-        //Update player
-        /*$.ajax({
-            type: 'POST',
-            url: "update_player/",
-            data: { "nickname": userName, "online": true },
-            success: function (response) {
-                console.log("Successfully updated player's status!"); //debug
-            }
-        });*/
-
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        );
-
-        const leaderboardSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/leaderboard/'
-            + roomName
-            + '/'
-        );
-
-
-        //Player list
-        var playerList = document.getElementById("player-list");
-        leaderboardSocket.onopen = function(e) {
-            leaderboardSocket.send("Player connected");
-            $.ajax({
-                type: 'POST',
-                url: "update_player/",
-                data: { "nickname": userName, "online": true },
-                success: function (response) {
-                    console.log("Successfully updated player's status!"); //debug
-                }
-            });
-        };
-
-
-        leaderboardSocket.onmessage = function(e) {
-            //console.log("Received message from leaderboardSocket: " + e.data)
-            const data = JSON.parse(e.data);
-            console.log(data);
-
-            playerList.innerHTML = "";
-            Object.keys(data).forEach( playerName => {
-                var player = data[playerName];
-
-                var entry = document.createElement('li');
-                entry.style.cssText = player.online ? "color: #cccccc;" : "color: #777777;";
-                entry.appendChild(document.createTextNode(
-                    playerName + " - " + (player.online ? "online" : "offline")
-                ));
-                playerList.appendChild(entry);
-            });
-
-            // TBR
-            /*try {
-                $.ajax({
-                    type: 'GET',
-                    url: "get_players/",
-                    data: { "room_name": roomName },
-                    datatype: 'json',
-                    success: function(response) {
-                        response.forEach( element => {
-                            var entry = document.createElement('li');
-                            entry.style.cssText = element.online ? "color: #cccccc;" : "color: #777777;";
-                            entry.appendChild(document.createTextNode(
-                                element.nickname + " - " + (element.online ? "online" : "offline")
-                            ));
-                            playerList.appendChild(entry);
-                        });
-                    }
-                });
-            }
-            catch(err) {
-                console.log(err.message);
-            }*/
-        };
-
-
-        chatSocket.onmessage = function(e) {
-            try {
-                const data = JSON.parse(e.data);
-                console.log(e.data); //debug
-                console.log(data.type); //debug
-
-                e.preventDefault();
-
-                $.ajax({
-                    type: 'POST',
-                    url: "send_message/",
-                    data: {
-                            sender: data.sender,
-                            text: data.message
-                          },
-                    success: function (response) {
-                        console.log("Successfully received message!");
-                    }
-                });
-
-                document.querySelector('#chat-log').value += (data.sender + ": " + data.message + '\n');
-                console.log(data.sender); // debug
-            } catch(err) {
-                console.log("Invalid data received from WebSocket: {err.message}");
-            }
-        };
-
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        leaderboardSocket.onclose = function(e) {
-            console.error('Leaderboard socket closed unexpectedly');
-        };
-
-
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
-
-
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            var msg = {
-                "type": "chat-message",
-			    "message": message,
-			    "sender": userName
-			};
-            chatSocket.send(JSON.stringify(msg));
-            messageInputDom.value = '';
-        };
-
-    </script>
+    <script src="{% static 'chat/sockets.js' %}"t></script>
+    <script src="{% static 'chat/draw.js' %}"></script>
 </body>
 </html>
