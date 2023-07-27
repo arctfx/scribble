@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/style.css">
+    <title>Create game</title>
+</head>
+<body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
+    <p>Let's play scribble!</p>
+
+    <input id="nickname-input" type="text" size="30" placeholder="AnonymousPlayer" pattern="\w{1,30}" style="background-color: #111111; color: #cccccc;">
+    <bold style="color: #777777; font-family: “Times New Roman”, Times, serif;">Nicknames should be up to 30 characters long and should not contain spaces</bold><br>
+    <input id="nickname-submit" type="button" value="Enter"><br><br>
+
+    <label for="rounds">Rounds (between 1 and 5):</label>
+    <input type="number" id="rounds" name="rounds" value="1" min="1" max="5">
+    <input type="submit" id="rounds-submit"><br>
+
+    <label for="time">Seconds per play (between 15 and 120):</label>
+    <input type="number" id="time" name="rounds" value="45" min="15" max="120">
+    <input type="submit" id="time-submit"><br>
+
+    <input type="checkbox" id="only-custom-words" name="only-custom-words-checkbox">
+    <label for="only-custom-words">Use only custom words</label><br>
+    <label>Custom words (separate with comma)</label><br>
+    <textarea id="custom-words" cols="30" rows="10"></textarea><br>
+
+    <input type="submit" class="create-game" value="Create game" id="play"><br>
+
+    <script>
+        var userName = "AnonymousPlayer";
+
+        document.querySelector('#nickname-input').onkeyup = function(e) {
+            if(e.keyCode === 13) { // enter, return
+                document.querySelector('#nickname-submit').click();
+            }
+        };
+        document.querySelector('#nickname-input').onchange = function(e) {
+            //TO_DO: validation
+            document.querySelector('#nickname-submit').click();
+        }
+
+        document.querySelector('#nickname-submit').onclick = function(e) {
+            userName = document.querySelector('#nickname-input').value;
+            console.log(document.querySelector('#nickname-input').value);
+            //TO_DO
+        };
+
+        document.querySelector('#play').onclick = function(e) {
+            window.location.pathname = '/room/' + 'create/' + userName + '/';
+        };
+    </script>
+</body>
+</html>

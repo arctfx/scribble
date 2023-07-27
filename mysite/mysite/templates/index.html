@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Scribbl.io</title>
+    <title>Scribble</title>
 </head>
 <body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
     <button id="play-game">Join game</button><br>
@@ -10,11 +10,11 @@
 
     <script>
         document.querySelector('#play-game').onclick = function(e) {
-            window.location.pathname = '/chat/';
+            window.location.pathname = '/join-room/';
         };
 
         document.querySelector('#create-game').onclick = function(e) {
-            window.location.pathname = '/game/';
+            window.location.pathname = '/create-room/';
         };
     </script>
 

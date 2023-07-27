@@ -1,18 +1,17 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.db.models import IntegerField
 from django.utils.crypto import get_random_string
-from django.contrib.auth.models import User
 from django.utils import timezone
 
 
-# TBR
 def generate_id():
     return get_random_string(length=8)
 
 
 class Room(models.Model):
     id = models.CharField(max_length=8, primary_key=True, default=generate_id())
+    rounds = models.IntegerField(default=3)  # number of rounds to be played
+    time_per_round = models.IntegerField(default=45)  # in seconds
+    painter_id = models.IntegerField(default=None, null=True)
 
     def __str__(self):
         return self.id
@@ -22,6 +21,7 @@ class Player(models.Model):
     # pk: id
     nickname = models.CharField(max_length=30)
     score = models.IntegerField(default=0)
+    # TBR: probably on_delete=CASCADE is not a good idea
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     online = models.BooleanField(default=False)
     # Player should

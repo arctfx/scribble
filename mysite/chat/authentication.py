@@ -1,6 +1,5 @@
-# from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
+
 from .models import Room, Player
 
 
@@ -11,12 +10,18 @@ class PlayerBackend(ModelBackend):
         try:
             room = Room.objects.get(pk=room_id)
             try:
-                player = Player.objects.filter(nickname=username, room__id=room_id).first()
-                # add permission to play field in the Player model
+                # Would not raise any exception, use get() instead:
+                # player = Player.objects.filter(nickname=username, room__id=room_id).first()
+                player = Player.objects.get(nickname=username, room__id=room_id)
+                # TBR: add permission to play field in the Player model
                 return player
             except Player.DoesNotExist:
                 print("Player does not exist")  # debug
-                return None
+                player = Player.objects.create(nickname=username, room=room)
+                player.save()
+                return player
+            except Player.MultipleObjectsReturned:  # should never raise this exception
+                raise Exception("There are multiple players with those parameters")
         except Room.DoesNotExist:
             print("Room does not exist")  # debug
             return None

@@ -1,9 +1,11 @@
 import json
+
 from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.db import database_sync_to_async
-from .models import Room, Player
 from channels.auth import login
+
+from .models import Room, Player
 
 
 class DrawingBoardConsumer(AsyncWebsocketConsumer):
@@ -42,10 +44,11 @@ class DrawingBoardConsumer(AsyncWebsocketConsumer):
         current_y = event["current_y"]
         prev_x = event["prev_x"]
         prev_y = event["prev_y"]
+        color = event["color"]
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            "current_x": current_x, "current_y": current_y, "prev_x": prev_x, "prev_y": prev_y
+            "current_x": current_x, "current_y": current_y, "prev_x": prev_x, "prev_y": prev_y, "color": color
         }))
 
 

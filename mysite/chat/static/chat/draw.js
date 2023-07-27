@@ -1,11 +1,12 @@
 const panel = document.getElementById("canvas-panel")
 const canvas = document.getElementById("canvas")
-panel.height = 0.75 * window.innerHeight
-panel.width = 1.5 * panel.height
-//canvas.height = panel.height
-//canvas.width = panel.width
-canvas.height = 300
-canvas.width = 500
+//panel.height = 0.75 * window.innerHeight
+//panel.width = 1.5 * panel.height
+// Fit canvas to the canvas container
+canvas.style.width ='100%';
+canvas.style.height='100%';
+canvas.width  = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
 
 const ctx = canvas.getContext("2d")
 ctx.fillStyle = "black"
@@ -13,24 +14,27 @@ ctx.strokeStyle = "black"
 
 let prevX = null
 let prevY = null
+let color = "pink"
 
 ctx.lineWidth = 5
 
 let isDrawing = false
 //let can_draw = false
 
-function draw(current_x, current_y, prev_x, prev_y) {
-    console.log("draw")
+function changeColor(newColor) {
+    ctx.fillStyle = newColor
+    ctx.strokeStyle = newColor
+}
+
+function draw(current_x, current_y, prev_x, prev_y, color) {
+    changeColor(color)
+
     ctx.beginPath()
     ctx.moveTo(prev_x, prev_y)
     ctx.lineTo(current_x, current_y)
     ctx.stroke()
-    //ctx.arc(current_x, current_y, 4, 0, 2 * Math.PI)
     ctx.arc(current_x, current_y, 2, 0, 2 * Math.PI);
     ctx.fill()
-    //ctx.fillStyle("red")
-    //ctx.fill()
-
 }
 
 //WebSocket
@@ -53,8 +57,7 @@ let clrs = document.querySelectorAll(".clr")
 clrs = Array.from(clrs)
 clrs.forEach(clr => {
     clr.addEventListener("click", () => {
-        ctx.strokeStyle = clr.dataset.clr
-        ctx.fillStyle = clr.dataset.clr
+        changeColor(clr.dataset.clr)
     })
 })
 
@@ -98,7 +101,8 @@ window.addEventListener("mousemove", (e) => {
                 "current_x": currentX,
                 "current_y": currentY,
                 "prev_x": prevX,
-                "prev_y": prevY
+                "prev_y": prevY,
+                "color": color
 			  };
     drawingBoardSocket.send(JSON.stringify(msg))
 

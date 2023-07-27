@@ -1,12 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt, requires_csrf_token, ensure_csrf_cookie, csrf_protect
-from .models import Room
-from .models import Player
-from .models import Message
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, authenticate
+
+from .models import Room, Player, Message
 from .authentication import PlayerBackend
+from .game import GameManager
 
 
 def index(request, redirected=False):
@@ -14,11 +14,20 @@ def index(request, redirected=False):
     return render(request, "chat/index.html", context)
 
 
+def create_room(request, user_name):
+    room_obj = Room.objects.create()
+    room_obj.save()
+    user = Player.objects.create(nickname=user_name, room=room_obj)
+    user.save()
+    login(request, user, backend="chat.authentication.PlayerBackend")
+    return redirect(f"/room/{room_obj.id}/{user_name}")
+
+
 def login_room(request, room_name, user_name):
     room_obj = Room.objects.filter(pk=room_name).first()
     if room_obj:
         user = authenticate(request, room_id=room_name, username=user_name)  # new
-        print(user)
+        print(user)  # debug
         if user is not None:
             login(request, user, backend="chat.authentication.PlayerBackend")
             player_obj = Player.objects.filter(nickname=user_name, room=room_obj).first()
@@ -32,11 +41,12 @@ def login_room(request, room_name, user_name):
             # Redirect to a success page.
             return render(request, "chat/room.html", context)
         else:
-            raise Exception("Invalid login credentials")
+            raise Exception("User does not exist")
     else:
         return index(request, True)
 
 
+# TBR: Probably not used at all
 def room(request, room_name):
     # get_object_or_404(Room, pk=room_name)
     room_obj = Room.objects.filter(pk=room_name).first()

@@ -58,7 +58,7 @@
                 var entry = document.createElement('li');
                 entry.style.cssText = player.online ? "color: #cccccc;" : "color: #777777;";
                 entry.appendChild(document.createTextNode(
-                    playerName + " - " + (player.online ? "online" : "offline")
+                    playerName + " - " + player.score
                 ));
                 playerList.appendChild(entry);
             });
