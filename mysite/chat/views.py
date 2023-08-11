@@ -23,6 +23,7 @@ def create_room(request, user_name):
     return redirect(f"/room/{room_obj.id}/{user_name}")
 
 
+# TBR: wrong room crashes the server
 def login_room(request, room_name, user_name):
     room_obj = Room.objects.filter(pk=room_name).first()
     if room_obj:
@@ -93,3 +94,12 @@ def get_players(request, room_name, user_name):
         players.append({"nickname": player.nickname, "score": player.score, "online": player.online})
     # Passing non-dictionary data, therefore safe=False
     return JsonResponse(players, safe=False)
+
+
+# TBR: room_name & user_name arguments are required by the url format, although are not used
+@csrf_exempt
+def start_game(request, room_name, user_name):
+    print("GAME STARTED")
+    game = GameManager(room_name, user_name)
+    game.start()
+    return HttpResponse("Game started!")

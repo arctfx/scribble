@@ -58,8 +58,21 @@
             </script>
         {% endfor %}
     {% endif %}
-
     <script src="{% static 'chat/sockets.js' %}"t></script>
+    <script>
+        document.querySelector('#start-game').onclick = function(e) {
+            console.log("Game start")
+
+            $.ajax({
+                type: 'POST',
+                url: "start_game/",
+                data: { "nickname": userName },
+                success: function (response) {
+                    console.log("Game started!"); //debug
+                }
+            });
+        };
+    </script>
     <script src="{% static 'chat/draw.js' %}"></script>
 </body>
 </html>

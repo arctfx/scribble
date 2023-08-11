@@ -3,10 +3,10 @@ const canvas = document.getElementById("canvas")
 //panel.height = 0.75 * window.innerHeight
 //panel.width = 1.5 * panel.height
 // Fit canvas to the canvas container
-canvas.style.width ='100%';
-canvas.style.height='100%';
-canvas.width  = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
+canvas.style.width ='100%'
+canvas.style.height='100%'
+canvas.width  = canvas.offsetWidth
+canvas.height = canvas.offsetHeight
 
 const ctx = canvas.getContext("2d")
 ctx.fillStyle = "black"
@@ -14,12 +14,13 @@ ctx.strokeStyle = "black"
 
 let prevX = null
 let prevY = null
-let color = "pink"
+let chosen_color = "black"
 
 ctx.lineWidth = 5
 
 let isDrawing = false
 //let can_draw = false
+
 
 function changeColor(newColor) {
     ctx.fillStyle = newColor
@@ -33,8 +34,10 @@ function draw(current_x, current_y, prev_x, prev_y, color) {
     ctx.moveTo(prev_x, prev_y)
     ctx.lineTo(current_x, current_y)
     ctx.stroke()
-    ctx.arc(current_x, current_y, 2, 0, 2 * Math.PI);
+    ctx.arc(current_x, current_y, 2, 0, 2 * Math.PI)
     ctx.fill()
+
+    changeColor(chosen_color)
 }
 
 //WebSocket
@@ -44,20 +47,20 @@ const drawingBoardSocket = new WebSocket(
     + '/ws/drawing-board/'
     + roomName
     + '/'
-);
+)
 
 drawingBoardSocket.onmessage = function(e) {
     console.log("Message received!")
-    const data = JSON.parse(e.data);
-    draw(data.current_x, data.current_y, data.prev_x, data.prev_y)
-};
+    const data = JSON.parse(e.data)
+    draw(data.current_x, data.current_y, data.prev_x, data.prev_y, data.color)
+}
 
 
 let clrs = document.querySelectorAll(".clr")
 clrs = Array.from(clrs)
 clrs.forEach(clr => {
     clr.addEventListener("click", () => {
-        changeColor(clr.dataset.clr)
+        chosen_color = clr.dataset.clr
     })
 })
 
@@ -72,8 +75,6 @@ saveBtn.addEventListener("click", () => {
     let data = canvas.toDataURL("imag/png")
     let a = document.createElement("a")
     a.href = data
-    // what ever name you specify here
-    // the image will be saved as that name
     a.download = "sketch.png"
     a.click()
 })
@@ -102,8 +103,8 @@ window.addEventListener("mousemove", (e) => {
                 "current_y": currentY,
                 "prev_x": prevX,
                 "prev_y": prevY,
-                "color": color
-			  };
+                "color": chosen_color
+			  }
     drawingBoardSocket.send(JSON.stringify(msg))
 
     prevX = currentX

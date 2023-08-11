@@ -12,6 +12,7 @@ class Room(models.Model):
     rounds = models.IntegerField(default=3)  # number of rounds to be played
     time_per_round = models.IntegerField(default=45)  # in seconds
     painter_id = models.IntegerField(default=None, null=True)
+    #drawing = models.ImageField();  # TBR
 
     def __str__(self):
         return self.id
