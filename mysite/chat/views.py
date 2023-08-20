@@ -7,6 +7,7 @@ from django.contrib.auth import login, authenticate
 from .models import Room, Player, Message
 from .authentication import PlayerBackend
 from .game import GameManager
+from .game import encode_word
 
 
 def index(request, redirected=False):
@@ -48,6 +49,7 @@ def login_room(request, room_name, user_name):
 
 
 # TBR: Probably not used at all
+"""
 def room(request, room_name):
     # get_object_or_404(Room, pk=room_name)
     room_obj = Room.objects.filter(pk=room_name).first()
@@ -58,6 +60,7 @@ def room(request, room_name):
         return render(request, "chat/room.html", context)
     else:
         return index(request, True)
+"""
 
 
 @csrf_exempt
@@ -87,8 +90,8 @@ def update_player(request, room_name, user_name):
 # TBR: room_name & user_name arguments are required by the url format, although are not used
 @csrf_exempt
 def get_players(request, room_name, user_name):
-    # TBR: filter by room id AND online=true
-    player_list = Player.objects.filter(room__id=request.GET["room_name"])
+    # TBR: filter by room id AND order by online=true
+    player_list = Player.objects.filter(room__id=request.GET["room_name"]).order_by("score")
     players = []
     for player in player_list:
         players.append({"nickname": player.nickname, "score": player.score, "online": player.online})
@@ -96,10 +99,21 @@ def get_players(request, room_name, user_name):
     return JsonResponse(players, safe=False)
 
 
-# TBR: room_name & user_name arguments are required by the url format, although are not used
+# TBR: request argument is required by the url format, although is not used
 @csrf_exempt
 def start_game(request, room_name, user_name):
     print("GAME STARTED")
     game = GameManager(room_name, user_name)
     game.start()
-    return HttpResponse("Game started!")
+    response = {"timer": game.seconds_per_round,
+                "round": game.round,
+                "painter": game.painter_id,
+                "word": encode_word(game.word)}
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def get_drawing(request, room_name, user_name):
+    room = Room.objects.get(id=room_name)
+    drawing_json = room.drawingJSON
+    return JsonResponse(drawing_json, safe=False)

@@ -4,6 +4,8 @@
 <head>
     <meta charset="utf-8"/>
     <title>Join game</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
 </head>
 <body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
     What chat room would you like to enter?<br>
@@ -11,7 +13,7 @@
     <input id="room-name-submit" type="button" value="Enter"><br>
     What would your nickname be?<br>
     <input id="nickname-input" type="text" size="30" placeholder="AnonymousPlayer" pattern="\w{1,30}" style="background-color: #111111; color: #cccccc;">
-    <bold style="color: #777777; font-family: “Times New Roman”, Times, serif;">Nicknames should be up to 30 characters long and should not contain spaces</bold><br>
+    <bold style="color: #012012; font-family: “Times New Roman”, Times, serif;">Nicknames should be up to 30 characters long and should not contain spaces</bold><br>
     <input id="nickname-submit" type="button" value="Enter">
 
     {% if bad_room_id %}

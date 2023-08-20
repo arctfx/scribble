@@ -10,15 +10,28 @@
     {{ room_name|json_script:"room-name" }}
     {{ user_name|json_script:"user-name" }}
 </head>
-<body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
-    <div class="overlay">
+<body>
+    <div id="overlay" class="overlay">
+        <br><br>
         <h1>Waiting for players!</h1>
         <button id="start-game">Start game</button>
         <ul id="player-log"></ul><br>
     </div>
-    <div class="word">
-        <h3>s _ _ _ _ _ _ _</h3>
+    <div id="word-div" class="word">
+        <h3 id="word" style="color: #ffffff;">Waiting for game to start</h3>
     </div>
+    <div id="div-timer" class="timer">
+        <h2 id="timer" style="color: #ffffff;">00:00</h2>
+    </div>
+    <label id="room-id">Room ID: </label><br>
+    <label id="user-id">Nickname: </label><br>
+    <textarea id="chat-log" cols="40" rows="20" style="background-color: #111111; opacity: 50%; color: #cccccc;"></textarea>
+    <div class="canvas-panel" id="canvas-panel">
+        <canvas id="canvas"></canvas>
+    </div>
+    <br>
+    <input id="chat-message-input" type="text" size="32" style="background-color: #111111; opacity: 50%; color: #cccccc;"><br>
+    <input id="chat-message-submit" type="button" value="Send"><br>
     <div class="nav">
         <div class="clr" data-clr="#000000"></div>
         <div class="clr" data-clr="#7f7f7f"></div>
@@ -36,16 +49,6 @@
         <button id="clear-button" class="clear">clear</button>
         <button id="save-button" class="save">save</button>
     </div>
-
-    <label id="room-id">Room ID: </label><br>
-    <label id="user-id">Nickname: </label><br>
-    <textarea id="chat-log" cols="60" rows="20" style="background-color: #111111; color: #cccccc;"></textarea>
-    <div class="canvas-panel" id="canvas-panel">
-        <canvas id="canvas"></canvas>
-    </div>
-    <br>
-    <input id="chat-message-input" type="text" size="60" style="background-color: #111111; color: #cccccc;"><br>
-    <input id="chat-message-submit" type="button" value="Send"><br>
     <p>Players: nickname - score</p>
     <ul id="player-list"></ul><br>
 
@@ -54,12 +57,36 @@
             <script mssg="{{ message.text }}", sndr="{{ message.sender}}">
                 message = document.currentScript.getAttribute('mssg');
                 sender = document.currentScript.getAttribute('sndr');
-                document.querySelector('#chat-log').value += (sender + ": " + message + '\n');
+                textarea = document.querySelector('#chat-log');
+                textarea.value += (sender + ": " + message + '\n');
+                textarea.scrollTop = textarea.scrollHeight;
             </script>
         {% endfor %}
     {% endif %}
+
     <script src="{% static 'chat/sockets.js' %}"t></script>
     <script>
+        function formatSeconds(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds%60;
+            return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
+        }
+
+        function delay(time) {
+            return new Promise(resolve => setTimeout(resolve, time));
+        }
+
+        async function startTimer(seconds) {
+            console.log('start timer')
+
+            document.querySelector('#timer').innerHTML = formatSeconds(seconds)
+            for (let step = seconds-1; step >= 0; step--) {
+                await delay(1000)
+                document.querySelector('#timer').innerHTML = formatSeconds(step)
+            }
+
+        }
+
         document.querySelector('#start-game').onclick = function(e) {
             console.log("Game start")
 
@@ -68,7 +95,11 @@
                 url: "start_game/",
                 data: { "nickname": userName },
                 success: function (response) {
-                    console.log("Game started!"); //debug
+                    console.log(response)  //debug
+                    const element = document.getElementById("overlay")
+                    element.remove()
+                    document.getElementById("word").innerHTML = response.word
+                    startTimer(response.timer)
                 }
             });
         };

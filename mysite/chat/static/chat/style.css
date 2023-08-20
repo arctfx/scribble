@@ -1,3 +1,11 @@
+body {
+  background-image: url(background2.png);
+  background-repeat: repeat;
+  color: #cccccc;
+  font-family: “Comic Sans MS”, “Comic Sans”, cursive;
+  //-webkit-text-stroke: 1px #000000;
+}
+
 .overlay {
   position: fixed;
   display: block;
@@ -22,11 +30,39 @@
 }
 
 .word{
-    width: 700px;
-    height: 50px;
-    position: fixed;
+    margin: auto;
+    width: 800px;
+    height: 40px;
+    position: absolute;
+    //fixed;
+    text-align: center;
+    vertical-align: top;
+    left: 0%;
+    right: 0%;
+    //background: #456789;
     top: 0;
-    left: 50%;
+}
+
+.timer{
+    height: 40px;
+    position: absolute;
+    text-align: center;
+    vertical-align: top;
+    left: 0%;
+    right: 0%;
+    //background: #987654;
+    top: 540px;
+}
+
+.header {
+    -webkit-text-stroke: 1px #000000;
+}
+
+.textarea {
+    background-color: #111111;
+    opacity: 50%;
+    color: #ffffff;
+    position: absolute;
 }
 
 .nav{

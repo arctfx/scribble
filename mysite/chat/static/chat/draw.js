@@ -21,6 +21,27 @@ ctx.lineWidth = 5
 let isDrawing = false
 //let can_draw = false
 
+// GET room drawingJSON data and draw it on canvas
+try {
+        $.ajax({
+            type: 'GET',
+            url: "get_drawing/",
+            data: { "room_name": roomName },
+            datatype: 'json',
+            success: function(response) {
+                response.forEach( data => {
+                    draw(data.current_x, data.current_y, data.prev_x, data.prev_y, data.color)
+                });
+            }
+        });
+    }
+catch(err) {
+    console.log(err.message);
+}
+
+function clear() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+}
 
 function changeColor(newColor) {
     ctx.fillStyle = newColor
@@ -52,7 +73,12 @@ const drawingBoardSocket = new WebSocket(
 drawingBoardSocket.onmessage = function(e) {
     console.log("Message received!")
     const data = JSON.parse(e.data)
-    draw(data.current_x, data.current_y, data.prev_x, data.prev_y, data.color)
+    if (data.clear) {
+        clear()
+    }
+    else {
+        draw(data.current_x, data.current_y, data.prev_x, data.prev_y, data.color)
+    }
 }
 
 
@@ -66,7 +92,9 @@ clrs.forEach(clr => {
 
 let clearBtn = document.querySelector(".clear")
 clearBtn.addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    clear()
+    var msg = { "clear": true }
+    drawingBoardSocket.send(JSON.stringify(msg))
 })
 
 // Saving drawing as image
@@ -95,19 +123,19 @@ window.addEventListener("mousemove", (e) => {
     }
 
     if(isDrawing) {
-    let currentX = e.clientX - offsetX
-    let currentY = e.clientY - offsetY
+        let currentX = e.clientX - offsetX
+        let currentY = e.clientY - offsetY
 
-    var msg = {
+        var msg = {
                 "current_x": currentX,
                 "current_y": currentY,
                 "prev_x": prevX,
                 "prev_y": prevY,
                 "color": chosen_color
-			  }
-    drawingBoardSocket.send(JSON.stringify(msg))
+	    }
+        drawingBoardSocket.send(JSON.stringify(msg))
 
-    prevX = currentX
-    prevY = currentY
+        prevX = currentX
+        prevY = currentY
     }
 })

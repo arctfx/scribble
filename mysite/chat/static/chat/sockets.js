@@ -108,7 +108,9 @@
                     }
                 });
 
-                document.querySelector('#chat-log').value += (data.sender + ": " + data.message + '\n');
+                textarea = document.querySelector('#chat-log');
+                textarea.value += (data.sender + ": " + data.message + '\n');
+                textarea.scrollTop = textarea.scrollHeight;
                 console.log(data.sender); // debug
             } catch(err) {
                 console.log("Invalid data received from WebSocket: {err.message}");

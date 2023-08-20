@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Scribble</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
 </head>
-<body style="background-color: #111111; color: #cccccc; font-family: “Comic Sans MS”, “Comic Sans”, cursive;">
+<body>
     <button id="play-game">Join game</button><br>
     <button id="create-game">Create private game</button>
 
