@@ -7,6 +7,7 @@ from channels.auth import login
 import datetime
 
 from .models import Room, Player
+from .game import GameManager
 
 
 class DrawingBoardConsumer(AsyncWebsocketConsumer):
@@ -45,7 +46,7 @@ class DrawingBoardConsumer(AsyncWebsocketConsumer):
             # Send message to room group
             await self.channel_layer.group_send(self.room_group_name, context)
 
-        except ValueError as err:  # not needed to catch such exception
+        except ValueError as err:  # TBR: not needed
             print(err)
 
     async def disconnect(self, code):
@@ -121,7 +122,7 @@ class LeaderboardConsumer(AsyncWebsocketConsumer):
         players = {}
         async for player in players_query:
             players[player.nickname] = {"score": player.score, "online": player.online}
-        print(players)  # debug
+        # print(players)  # debug
 
         # Send signal to WebSocket
         await self.send(text_data=json.dumps(players))
@@ -152,16 +153,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         try:
-            print(text_data)  # debug
+            # print(text_data)  # debug
             text_data_json = json.loads(text_data)
 
             message = text_data_json["message"]
-            sender = text_data_json["sender"]
+            sender = text_data_json["sender"]  # can be none
+
+            response = {"type": "chat_message",
+                        "message": message,
+                        "sender": sender}
 
             # Send message to room group
-            await self.channel_layer.group_send(
-                self.room_group_name, {"type": "chat_message", "message": message, "sender": sender}
-            )
+            await self.channel_layer.group_send(self.room_group_name, response)
 
         except ValueError as err:
             print(err)
@@ -171,6 +174,76 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("CHAT_MESSAGE")
         message = event["message"]
         sender = event["sender"]
+        print(sender)
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({"message": message, "sender": sender}))
+
+
+class GameConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.room_group_name = None
+        self.room_name = None
+
+    async def connect(self):
+        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        self.room_group_name = "game_%s" % self.room_name
+
+        # Join room group
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    # Receive message from WebSocket
+    async def receive(self, text_data):
+        try:
+            # print(text_data)  # debug
+            text_data_json = json.loads(text_data)
+
+            sender = text_data_json["sender"]  # TBR: maybe unnecessary
+            context = {"type": "game.start_round"}
+
+            game = await sync_to_async(GameManager)(self.room_name, sender)
+
+            if game.room.in_progress:
+                print("GAME IS IN PROGRESS")
+
+            else:
+                await sync_to_async(game.start)()
+            painter = await sync_to_async(Player.objects.get)(pk=game.painter)
+
+            context.update({"sender": sender,
+                            "timer": game.time_left,
+                            "round": game.round,
+                            "painter": painter.nickname,
+                            "word": game.room.word,
+                            "word_encoded": game.word_encoded})
+
+            # Send message to room group
+            await self.channel_layer.group_send(self.room_group_name, context)
+
+        except ValueError as err:
+            print(err)
+
+    # Receive message from room group
+    async def game_start_round(self, event):
+        print("GAME_STARTS")
+        sender = event["sender"]
+        word = event["word"]
+        word_encoded = event["word_encoded"]
+        timer = event["timer"]
+        round_number = event["round"]
+        painter = event["painter"]
+
+        if sender == painter:  # TBA: not working correctly
+            response = {"timer": timer, "round": round_number, "painter": painter, "word": word}
+        else:
+            response = {"timer": timer, "round": round_number, "painter": painter, "word": word_encoded}
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps(response))

@@ -25,12 +25,12 @@
     </div>
     <label id="room-id">Room ID: </label><br>
     <label id="user-id">Nickname: </label><br>
-    <textarea id="chat-log" cols="40" rows="20" style="background-color: #111111; opacity: 50%; color: #cccccc;"></textarea>
+    <textarea id="chat-log" cols="40" rows="20" style="background-color: #111111; opacity: 80%; color: #cccccc;"></textarea>
     <div class="canvas-panel" id="canvas-panel">
         <canvas id="canvas"></canvas>
     </div>
     <br>
-    <input id="chat-message-input" type="text" size="32" style="background-color: #111111; opacity: 50%; color: #cccccc;"><br>
+    <input id="chat-message-input" type="text" size="32" style="background-color: #111111; opacity: 80%; color: #cccccc;"><br>
     <input id="chat-message-submit" type="button" value="Send"><br>
     <div class="nav">
         <div class="clr" data-clr="#000000"></div>
@@ -54,11 +54,16 @@
 
     {% if latest_messages %}
         {% for message in latest_messages %}
-            <script mssg="{{ message.text }}", sndr="{{ message.sender}}">
+            <script mssg="{{ message.text }}", sndr="{{ message.sender }}">
                 message = document.currentScript.getAttribute('mssg');
                 sender = document.currentScript.getAttribute('sndr');
                 textarea = document.querySelector('#chat-log');
-                textarea.value += (sender + ": " + message + '\n');
+                if (sender === null) {
+                    textarea.value += (message + '\n');
+                }
+                else {
+                    textarea.value += (sender + ": " + message + '\n');
+                }
                 textarea.scrollTop = textarea.scrollHeight;
             </script>
         {% endfor %}
@@ -85,21 +90,70 @@
                 document.querySelector('#timer').innerHTML = formatSeconds(step)
             }
 
+            overlay.attach()
+
         }
+
+        gameSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log(data);
+
+            if (data.painter != userName) {
+                can_draw = false;
+                can_chat = true;
+            }
+            else {
+                can_draw = true;
+                can_chat = false;
+                var msg = {
+			        "message": userName + " is painter.",
+			        "sender": null
+			    };
+                chatSocket.send(JSON.stringify(msg));
+            }
+
+            $.ajax({
+                type: 'GET',
+                url: "get_word/",
+                data: { "nickname": userName },
+                success: function (response) {
+                    document.getElementById("word").innerHTML = response.word
+                }
+            });
+
+            var detached = $('#overlay').detach();
+
+            startTimer(data.timer)
+        };
 
         document.querySelector('#start-game').onclick = function(e) {
             console.log("Game start")
 
+
             $.ajax({
-                type: 'POST',
+                type: 'GET',
                 url: "start_game/",
-                data: { "nickname": userName },
+                data: { "nickname": userName },  // data is not used currently
                 success: function (response) {
-                    console.log(response)  //debug
-                    const element = document.getElementById("overlay")
-                    element.remove()
-                    document.getElementById("word").innerHTML = response.word
-                    startTimer(response.timer)
+                    if (response.start == true) {
+                        let data = { "sender": userName };
+                        gameSocket.send(JSON.stringify(data));
+                    }
+                    else {
+                        $.ajax({
+                            type: 'GET',
+                            url: "get_word/",
+                            data: { "nickname": userName },
+                            success: function (data) {
+                                document.getElementById("word").innerHTML = data.word
+                            }
+                        });
+
+                        const element = document.getElementById("overlay")
+                        element.remove()
+
+                        startTimer(response.timer)
+                    }
                 }
             });
         };

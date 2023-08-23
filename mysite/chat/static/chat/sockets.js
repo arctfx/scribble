@@ -1,3 +1,6 @@
+        var can_draw = false
+        var can_chat = true
+
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
         document.querySelector('#room-id').innerHTML += roomName;
         const userName = JSON.parse(document.getElementById('user-name').textContent);
@@ -30,6 +33,13 @@
             + '/'
         );
 
+        const gameSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/game/'
+            + roomName
+            + '/'
+        );
 
         //Player list
         var playerList = document.getElementById("player-list");
@@ -109,7 +119,12 @@
                 });
 
                 textarea = document.querySelector('#chat-log');
-                textarea.value += (data.sender + ": " + data.message + '\n');
+                if (data.sender === null) {
+                    textarea.value += (data.message + '\n');
+                }
+                else {
+                    textarea.value += (data.sender + ": " + data.message + '\n');
+                }
                 textarea.scrollTop = textarea.scrollHeight;
                 console.log(data.sender); // debug
             } catch(err) {
@@ -136,13 +151,40 @@
 
 
         document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            var msg = {
-                //"type": "chat-message",
-			    "message": message,
-			    "sender": userName
-			};
-            chatSocket.send(JSON.stringify(msg));
-            messageInputDom.value = '';
+            if (can_chat == true) {
+                const messageInputDom = document.querySelector('#chat-message-input');
+                const message = messageInputDom.value;
+                messageInputDom.value = '';
+
+                try {
+                    $.ajax({
+                        type: 'GET',
+                        url: "guess_word/",
+                        data: { "room_name": roomName, "user_name": userName, "word": message},
+                        datatype: 'json',
+                        success: function(response) {
+                            console.log(response)
+                            if (response.guessed == true) {
+                                can_chat = false;
+                                var msg = {
+                                    "sender": null,
+                                    "message": userName + " guessed the word!",
+                                }
+                                leaderboardSocket.send("Player connected");
+                                chatSocket.send(JSON.stringify(msg));
+                            }
+                            else {
+                                var msg = {
+			                        "message": message,
+			                        "sender": userName
+			                    };
+                                chatSocket.send(JSON.stringify(msg));
+                            }
+                        }
+                    });
+                }
+                catch(err) {
+                    console.log(err.message);
+                }
+            }
         };

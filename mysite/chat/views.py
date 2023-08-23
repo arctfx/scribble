@@ -6,7 +6,7 @@ from django.contrib.auth import login, authenticate
 
 from .models import Room, Player, Message
 from .authentication import PlayerBackend
-from .game import GameManager
+from .game import GameManager  # should not be used in here
 from .game import encode_word
 
 
@@ -78,7 +78,7 @@ def send_message(request, room_name, user_name):
 @csrf_exempt
 def update_player(request, room_name, user_name):
     # TBR: send player id rather than player's nickname
-    print(request.POST)
+    # print(request.POST)
     player_obj = Player.objects.filter(nickname=request.POST["nickname"]).first()
     # player_obj__score = request.POST["score"]
     player_obj.online = True if request.POST["online"] == "true" else False
@@ -102,13 +102,35 @@ def get_players(request, room_name, user_name):
 # TBR: request argument is required by the url format, although is not used
 @csrf_exempt
 def start_game(request, room_name, user_name):
-    print("GAME STARTED")
+    """
+    Checks if a game can be started or is already in progress
+    If it cannot be started, returns additional arguments in the response
+    representing the current seconds of the game timer
+    """
+    if GameManager.can_start(room_name):
+        response = {"start": True}
+    else:
+        response = {"start": False, "timer": GameManager.get_time(room_name)}
+
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def guess_word(request, room_name, user_name):
     game = GameManager(room_name, user_name)
-    game.start()
-    response = {"timer": game.seconds_per_round,
-                "round": game.round,
-                "painter": game.painter_id,
-                "word": encode_word(game.word)}
+
+    # print(game.room.word)
+    response = {"guessed": game.guess(request.GET["word"])}
+
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def get_word(request, room_name, user_name):
+    game = GameManager(room_name, user_name)
+
+    response = {"word": game.get_word(user_name)}
+
     return JsonResponse(response)
 
 

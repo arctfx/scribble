@@ -19,7 +19,7 @@ let chosen_color = "black"
 ctx.lineWidth = 5
 
 let isDrawing = false
-//let can_draw = false
+// let can_draw = false // moved to sockets.js
 
 // GET room drawingJSON data and draw it on canvas
 try {
@@ -111,31 +111,35 @@ window.addEventListener("mousedown", (e) => isDrawing = true)
 window.addEventListener("mouseup", (e) => isDrawing = false)
 
 window.addEventListener("mousemove", (e) => {
-    let offsetX = panel.getBoundingClientRect().left
-    let offsetY = panel.getBoundingClientRect().top
+    if (can_draw) { /// can_draw is located in sockets.js
 
-    if(prevX == null || prevY == null || !isDrawing){
-        prevX = e.clientX - offsetX
-        prevY = e.clientY - offsetY
-        //console.log("PanelX: "+ x)
-        //console.log("PanelY: "+ y)
-        return
-    }
+        let offsetX = panel.getBoundingClientRect().left
+        let offsetY = panel.getBoundingClientRect().top
 
-    if(isDrawing) {
-        let currentX = e.clientX - offsetX
-        let currentY = e.clientY - offsetY
+        if(prevX == null || prevY == null || !isDrawing){
+            prevX = e.clientX - offsetX
+            prevY = e.clientY - offsetY
+            //console.log("PanelX: "+ x)
+            //console.log("PanelY: "+ y)
+            return
+        }
 
-        var msg = {
+        if(isDrawing) {
+            let currentX = e.clientX - offsetX
+            let currentY = e.clientY - offsetY
+
+            var msg = {
                 "current_x": currentX,
                 "current_y": currentY,
                 "prev_x": prevX,
                 "prev_y": prevY,
                 "color": chosen_color
-	    }
-        drawingBoardSocket.send(JSON.stringify(msg))
+	        }
+            drawingBoardSocket.send(JSON.stringify(msg))
 
-        prevX = currentX
-        prevY = currentY
-    }
+            prevX = currentX
+            prevY = currentY
+        }
+
+    } ///
 })
